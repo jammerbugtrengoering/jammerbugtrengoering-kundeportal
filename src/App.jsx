@@ -117,6 +117,22 @@ export default function App() {
     return <Ramme><div style={{ ...F.kort, textAlign: "center", color: "#94A3B8" }}>Henter tilbuddet…</div></Ramme>;
   }
 
+  // Rod-adressen uden noegle er ikke en fejl — det er bare nogen der er landet her.
+  // "Vi kan ikke finde tilbuddet" ville faa dem til at tro at noget var gaaet galt.
+  if (!noegle) {
+    return (
+      <Ramme>
+        <div style={F.kort}>
+          <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Velkommen</div>
+          <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
+            Her åbner du et tilbud fra os. Brug linket i den mail du har fået —
+            det fører direkte til dit eget tilbud.
+          </div>
+        </div>
+      </Ramme>
+    );
+  }
+
   if (fejl === "ukendt" && !tilbud) {
     return (
       <Ramme>
