@@ -1,0 +1,19 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Kundens link er /tilbud/<noegle>. Uden den her ville Netlify lede efter en fil paa
+# den sti og svare 404 — siden findes kun inde i appen.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Tilbud maa ikke ende i en soegemaskine eller i et arkiv.
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
