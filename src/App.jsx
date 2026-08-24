@@ -32,20 +32,10 @@ export default function App() {
   // også det planlæggeren kan skrive når portalen tændes.
   const slug = (sti.match(/^\/([a-z0-9-]+)\/?$/) || [])[1] || "";
 
-  if (!slug) {
-    return (
-      <Ramme fod="Spørgsmål? Ring til kontoret, så tager vi den derfra.">
-        <div style={F.kort}>
-          <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Velkommen</div>
-          <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
-            Her åbner du et tilbud fra os, eller logger ind i din kundeportal.
-            Brug linket i den mail du har fået — det fører direkte det rigtige sted hen.
-          </div>
-        </div>
-      </Ramme>
-    );
-  }
-
+  // Ogsaa uden kortnavn mountes portalen. Roden var foer en blindgyde: landede man
+  // her med en gyldig session — fx fra et link uden kortnavn — fik man en
+  // velkomsttekst og troede at login'et var mislykkedes. Nu vises kundens egen side,
+  // og er man ikke logget ind, staar login-feltet der bare uden kundens navn paa.
   return (
     <Ramme fod="Spørgsmål? Ring til kontoret, så tager vi den derfra.">
       <Portal slug={slug} />
