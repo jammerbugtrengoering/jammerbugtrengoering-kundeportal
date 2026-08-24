@@ -36,7 +36,9 @@ function fakturaNummer(f) {
 
 // ── Login ────────────────────────────────────────────────────────
 //
-// Kunden faar en sekscifret kode, ikke et link.
+// Kunden faar en kode, ikke et link. Laengden staar ingen steder i koden her -
+// Supabase-projektet sender otte cifre, men det er en indstilling, saa feltet tager
+// imod 6-10 og lader Supabase afgoere om den passer.
 //
 // Der STOD et link her. Det virkede for alle med gmail og fejlede for alle med
 // firmamail, og auth-loggen viste hvorfor: linket blev indloest et minut efter
@@ -65,7 +67,7 @@ function LogInd({ forside, slug }) {
 
   async function bekraeft() {
     const t = kode.replace(/\D/g, "");
-    if (t.length !== 6) return;
+    if (t.length < 6) return;
     setTjekker(true); setFejl("");
     const { error } = await db.auth.verifyOtp({ email: email.trim(), token: t, type: "email" });
     setTjekker(false);
@@ -80,17 +82,17 @@ function LogInd({ forside, slug }) {
         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>Tjek din mail</div>
         <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginBottom: 14 }}>
           Er <strong>{email}</strong> registreret som bruger her, ligger der nu en
-          sekscifret kode til dig. Skriv den herunder.
+          kode til dig. Skriv den herunder — den står øverst i mailen.
         </div>
-        <input style={{ ...F.felt, fontSize: 26, letterSpacing: 8, textAlign: "center",
+        <input style={{ ...F.felt, fontSize: 24, letterSpacing: 5, textAlign: "center",
                         fontFamily: "monospace" }}
-          value={kode} inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-          placeholder="000000" autoFocus
-          onChange={(e) => setKode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          value={kode} inputMode="numeric" autoComplete="one-time-code" maxLength={10}
+          placeholder="00000000" autoFocus
+          onChange={(e) => setKode(e.target.value.replace(/\D/g, "").slice(0, 10))}
           onKeyDown={(e) => e.key === "Enter" && bekraeft()} />
         {fejl && <div style={{ ...F.hint, color: "#B91C1C", marginTop: 8 }}>{fejl}</div>}
         <button style={{ ...F.knap, marginTop: 14, opacity: tjekker ? 0.6 : 1 }}
-          onClick={bekraeft} disabled={tjekker || kode.length !== 6}>
+          onClick={bekraeft} disabled={tjekker || kode.length < 6}>
           {tjekker ? "Et \u00f8jeblik\u2026" : "Log ind"}
         </button>
         <button style={{ ...F.knap2, marginTop: 8 }}
@@ -456,7 +458,7 @@ function Brugere({ mig }) {
 function Hjaelp({ mig }) {
   const afsnit = [
     ["Sådan logger du ind", [
-      "Der er ingen adgangskode. Du skriver din mail, og vi sender dig en sekscifret kode.",
+      "Der er ingen adgangskode. Du skriver din mail, og vi sender dig en kode.",
       "Skriv koden i feltet der venter i browseren. Hold fanen åben imens — det er dér koden skal ind.",
       "Koden virker én gang og udløber efter en time. Bed roligt om en ny hvis den er brugt.",
       "Vi sender en kode og ikke et link, fordi mange firmaers sikkerhedsfilter åbner links automatisk for at scanne dem. Det brugte login'et op, før du selv nåede at trykke.",
