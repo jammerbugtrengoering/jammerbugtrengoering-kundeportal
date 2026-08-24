@@ -454,6 +454,199 @@ function Brugere({ mig }) {
   );
 }
 
+// ── Bestil ───────────────────────────────────────────────────────────────────
+//
+// Kun paa Udvidet. Kunden vaelger en ydelse fra listen eller skriver sit eget
+// oenske, og bestillingen gaar til planlaeggeren som et OENSKE - ikke som en
+// opgave. Derfor staar der heller ingen pris nogen steder: bestillingen er ikke
+// en aftale endnu, og et bel\u00f8b paa skaermen ville blive laest som et tilsagn.
+// Godkendt arbejde faktureres bagefter ad samme vej som alt andet.
+const BESTIL_STATUS = {
+  ny:       { tekst: "Afventer svar", farve: "#B45309", bag: "#FFFBEB" },
+  godkendt: { tekst: "Godkendt",      farve: "#166534", bag: "#F0FDF4" },
+  afvist:   { tekst: "Afvist",        farve: "#B91C1C", bag: "#FEF2F2" },
+};
+
+function Bestil({ mig }) {
+  const [ydelser, setYdelser] = useState([]);
+  const [mine, setMine] = useState(null);
+  const [ydelseId, setYdelseId] = useState("");
+  const [fritekst, setFritekst] = useState("");
+  const [dato, setDato] = useState("");
+  const [adresse, setAdresse] = useState("");
+  const [bemaerkning, setBemaerkning] = useState("");
+  const [sender, setSender] = useState(false);
+  const [fejl, setFejl] = useState("");
+  const [kvittering, setKvittering] = useState(false);
+
+  const hentMine = useCallback(async () => {
+    const { data } = await db.rpc("hent_portal_bestillinger");
+    setMine(data ?? []);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await db.rpc("hent_portal_ydelser");
+      setYdelser(data ?? []);
+    })();
+    hentMine();
+  }, [hentMine]);
+
+  const valgt = ydelser.find((y) => y.id === ydelseId) || null;
+  // Enten et punkt fra listen eller noget skrevet. Samme krav som i databasen -
+  // staar det kun ét af stederne, opdager man foerst manglen naar det fejler.
+  const kanSende = !!ydelseId || fritekst.trim().length > 0;
+
+  async function send() {
+    if (!kanSende || sender) return;
+    setSender(true); setFejl("");
+    const { error } = await db.from("portal_bestillinger").insert({
+      id: "pb" + crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+      dinero_contact_guid: mig.guid,
+      ydelse_id: ydelseId || null,
+      // Titlen fastholdes som den var. Aendrer kontoret ydelsen bagefter, skal
+      // bestillingen stadig kunne laeses som den blev afgivet.
+      ydelse_titel: valgt?.titel ?? null,
+      fritekst: fritekst.trim() || null,
+      oensket_dato: dato || null,
+      adresse: adresse.trim() || null,
+      bemaerkning: bemaerkning.trim() || null,
+      status: "ny",
+      bestilt_af_email: mig.min_email ?? null,
+      bestilt_af_navn: mig.mit_navn ?? null,
+    });
+    setSender(false);
+    if (error) { setFejl("Bestillingen kunne ikke sendes. Pr\u00f8v igen, eller ring til kontoret."); return; }
+
+    setYdelseId(""); setFritekst(""); setDato(""); setAdresse(""); setBemaerkning("");
+    setKvittering(true);
+    hentMine();
+    // Beskeden sendes med kundens EGET login, ikke som et aabent kald. Saa kan
+    // funktionen se hvem der bestiller og selv finde bestillingen — guid'et maa
+    // ikke kunne oplyses udefra.
+    //
+    // Mailen maa ikke kunne vaelte bestillingen. Raekken ER gemt, og planlaeggeren
+    // ser den i Ugeplan uanset om mailen naaede frem.
+    db.functions.invoke("bestilling-besked", { body: { handling: "ny" } }).catch(() => {});
+  }
+
+  return (
+    <>
+      <div style={F.kort}>
+        <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Bestil ekstra arbejde</div>
+        <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 16 }}>
+          Vælg en ydelse, eller skriv hvad I har brug for. Vi vender tilbage med en
+          aftale om tid og pris — bestillingen er ikke bindende.
+        </div>
+
+        {kvittering && (
+          <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10,
+                        padding: "12px 14px", fontSize: 14, color: "#166534",
+                        lineHeight: 1.55, marginBottom: 16 }}>
+            Tak — bestillingen er sendt. Den står nederst på siden, og I hører fra os.
+          </div>
+        )}
+
+        <label style={{ ...F.hint, marginTop: 0, fontWeight: 700, color: "#334155" }}>Ydelse</label>
+        <select style={{ ...F.felt, marginTop: 6 }} value={ydelseId}
+          onChange={(e) => { setYdelseId(e.target.value); setKvittering(false); }}>
+          <option value="">— vælg, eller beskriv selv nedenfor —</option>
+          {ydelser.map((y) => <option key={y.id} value={y.id}>{y.titel}</option>)}
+        </select>
+        {valgt?.beskrivelse && <div style={F.hint}>{valgt.beskrivelse}</div>}
+
+        <label style={{ ...F.hint, fontWeight: 700, color: "#334155", marginTop: 16 }}>
+          {ydelseId ? "Uddyb gerne" : "Hvad har I brug for?"}
+        </label>
+        <textarea style={{ ...F.felt, marginTop: 6, minHeight: 90, resize: "vertical",
+                           fontFamily: "inherit", lineHeight: 1.5 }}
+          value={fritekst} maxLength={2000}
+          placeholder={ydelseId ? "Fx hvor mange lokaler det drejer sig om."
+                                : "Beskriv opgaven med dine egne ord."}
+          onChange={(e) => { setFritekst(e.target.value); setKvittering(false); }} />
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
+          <div style={{ flex: "1 1 160px" }}>
+            <label style={{ ...F.hint, marginTop: 0, fontWeight: 700, color: "#334155" }}>
+              Ønsket dato
+            </label>
+            <input style={{ ...F.felt, marginTop: 6 }} type="date" value={dato}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setDato(e.target.value)} />
+          </div>
+          <div style={{ flex: "2 1 220px" }}>
+            <label style={{ ...F.hint, marginTop: 0, fontWeight: 700, color: "#334155" }}>
+              Adresse
+            </label>
+            <input style={{ ...F.felt, marginTop: 6 }} value={adresse}
+              placeholder="Kun hvis det ikke er den sædvanlige"
+              onChange={(e) => setAdresse(e.target.value)} />
+          </div>
+        </div>
+
+        <label style={{ ...F.hint, fontWeight: 700, color: "#334155", marginTop: 16 }}>
+          Adgang og bemærkninger
+        </label>
+        <input style={{ ...F.felt, marginTop: 6 }} value={bemaerkning} maxLength={500}
+          placeholder="Fx hvem vi skal spørge efter, eller hvornår der er åbent"
+          onChange={(e) => setBemaerkning(e.target.value)} />
+
+        {fejl && <div style={{ ...F.hint, color: "#B91C1C" }}>{fejl}</div>}
+
+        <button style={{ ...F.knap, marginTop: 18, opacity: kanSende && !sender ? 1 : 0.5 }}
+          onClick={send} disabled={!kanSende || sender}>
+          {sender ? "Sender\u2026" : "Send bestilling"}
+        </button>
+        <div style={F.hint}>
+          Vi ringer eller skriver, før arbejdet sættes i gang. Der trækkes ingen betaling
+          her — godkendt arbejde kommer på den almindelige faktura.
+        </div>
+      </div>
+
+      <div style={F.kort}>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Jeres bestillinger</div>
+        {mine === null && <div style={{ color: "#94A3B8", fontSize: 14 }}>Henter\u2026</div>}
+        {mine?.length === 0 && (
+          <div style={{ color: "#94A3B8", fontSize: 14, lineHeight: 1.6 }}>
+            I har ikke bestilt noget endnu.
+          </div>
+        )}
+        {mine?.map((b) => {
+          const st = BESTIL_STATUS[b.status] || BESTIL_STATUS.ny;
+          return (
+            <div key={b.id} style={{ borderBottom: "1px solid #F1F5F9", padding: "12px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 600 }}>
+                  {b.ydelse_titel || "Egen beskrivelse"}
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: st.farve, background: st.bag,
+                               borderRadius: 999, padding: "3px 10px", whiteSpace: "nowrap" }}>
+                  {st.tekst}
+                </span>
+              </div>
+              {b.fritekst && (
+                <div style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.55, marginTop: 4 }}>
+                  {b.fritekst}
+                </div>
+              )}
+              <div style={{ fontSize: 12.5, color: "#94A3B8", marginTop: 6 }}>
+                Bestilt {datoKort(b.oprettet)}
+                {b.oensket_dato ? ` · ønsket ${datoKort(b.oensket_dato)}` : ""}
+                {b.bestilt_af_navn ? ` · ${b.bestilt_af_navn}` : ""}
+              </div>
+              {b.status === "afvist" && b.planlaegger_note && (
+                <div style={{ fontSize: 13.5, color: "#B91C1C", lineHeight: 1.55, marginTop: 6 }}>
+                  {b.planlaegger_note}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 // ── Hjælp ────────────────────────────────────────────────────────────────────
 function Hjaelp({ mig }) {
   const afsnit = [
@@ -476,6 +669,15 @@ function Hjaelp({ mig }) {
       "Fakturaer der endnu ikke er sendt, vises ikke — de kan stadig nå at blive ændret.",
       "«Afventer betaling» betyder at fakturaen er sendt. «Forfalden» at betalingsfristen er passeret.",
       "Portalen er kun til at se i. Har du en indsigelse til en faktura, så ring til kontoret.",
+    ]],
+    ["Bestil ekstra arbejde", [
+      "Fanen Bestil findes kun, hvis I har den udvidede portal. Kan I ikke se den, så ring til kontoret.",
+      "Vælg en ydelse på listen, eller skriv med jeres egne ord hvad I har brug for. I kan gøre begge dele.",
+      "Skriv gerne en ønsket dato. Den er et ønske, ikke en aftale — vi vender tilbage, før noget sættes i gang.",
+      "Der står ingen pris, og der trækkes ingen betaling. Siger vi ja, kommer arbejdet på den almindelige faktura efter den tid der bliver brugt.",
+      "Nederst på siden kan I følge jeres bestillinger. «Afventer svar» betyder at vi har set den, men endnu ikke svaret.",
+      "Bliver en bestilling afvist, står begrundelsen samme sted, og I får den også på mail.",
+      "En bestilling kan ikke rettes, når den først er sendt. Har I skrevet forkert, så send en ny eller ring til kontoret.",
     ]],
     ["Brugere", [
       "Jeres administrator kan give kolleger adgang, og lukke adgangen igen når nogen stopper.",
@@ -575,6 +777,7 @@ export default function Portal({ slug }) {
   const faner = [
     ["opgaver", "Opgaver"],
     ["fakturaer", "Fakturaer"],
+    ...(mig.option === "udvidet" ? [["bestil", "Bestil"]] : []),
     ["brugere", "Brugere"],
     ["hjaelp", "Hjælp"],
   ];
@@ -602,6 +805,7 @@ export default function Portal({ slug }) {
 
       {fane === "opgaver" && <Opgaver />}
       {fane === "fakturaer" && <Fakturaer />}
+      {fane === "bestil" && mig.option === "udvidet" && <Bestil mig={mig} />}
       {fane === "brugere" && <Brugere mig={mig} />}
       {fane === "hjaelp" && <Hjaelp mig={mig} />}
     </>
