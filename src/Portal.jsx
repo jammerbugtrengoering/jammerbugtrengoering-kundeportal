@@ -34,15 +34,28 @@ function fakturaNummer(f) {
   return `#${n}`;
 }
 
-// ── Login ────────────────────────────────────────────────────────────────────
+// ── Login ────────────────────────────────────────────────────────
+//
+// Kunden faar en sekscifret kode, ikke et link.
+//
+// Der STOD et link her. Det virkede for alle med gmail og fejlede for alle med
+// firmamail, og auth-loggen viste hvorfor: linket blev indloest et minut efter
+// afsendelse, foer kunden havde mailen. Microsoft Defender scanner links ved at hente
+// dem, og et GET paa /auth/v1/verify ER selve login'et - saa scanneren brugte
+// engangstokenet op, og kunden endte tilbage paa denne side. Igen og igen.
+//
+// En kode kan ikke hentes. Den skal skrives af.
 function LogInd({ forside, slug }) {
   const [email, setEmail] = useState("");
+  const [kode, setKode] = useState("");
   const [sendt, setSendt] = useState(false);
   const [sender, setSender] = useState(false);
+  const [tjekker, setTjekker] = useState(false);
+  const [fejl, setFejl] = useState("");
 
   async function send() {
     if (!email.includes("@")) return;
-    setSender(true);
+    setSender(true); setFejl("");
     await kaldAaben("portal-login", { email: email.trim(), slug });
     setSender(false);
     // Kvitteringen er den samme uanset om mailen findes. Sagde vi "den kender vi
@@ -50,16 +63,39 @@ function LogInd({ forside, slug }) {
     setSendt(true);
   }
 
+  async function bekraeft() {
+    const t = kode.replace(/\D/g, "");
+    if (t.length !== 6) return;
+    setTjekker(true); setFejl("");
+    const { error } = await db.auth.verifyOtp({ email: email.trim(), token: t, type: "email" });
+    setTjekker(false);
+    // Lykkes det, opdager onAuthStateChange det selv og siden skifter. Her er der
+    // kun noget at goere hvis det gik galt.
+    if (error) { setFejl("Koden passer ikke, eller den er udl\u00f8bet."); setKode(""); }
+  }
+
   if (sendt) {
     return (
       <div style={F.kort}>
         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>Tjek din mail</div>
-        <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
-          Er <strong>{email}</strong> registreret som bruger her, ligger der nu et link
-          til dig. Det virker én gang og udløber om en time.
+        <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginBottom: 14 }}>
+          Er <strong>{email}</strong> registreret som bruger her, ligger der nu en
+          sekscifret kode til dig. Skriv den herunder.
         </div>
-        <button style={{ ...F.knap2, marginTop: 16 }} onClick={() => setSendt(false)}>
-          Prøv en anden mail
+        <input style={{ ...F.felt, fontSize: 26, letterSpacing: 8, textAlign: "center",
+                        fontFamily: "monospace" }}
+          value={kode} inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+          placeholder="000000" autoFocus
+          onChange={(e) => setKode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onKeyDown={(e) => e.key === "Enter" && bekraeft()} />
+        {fejl && <div style={{ ...F.hint, color: "#B91C1C", marginTop: 8 }}>{fejl}</div>}
+        <button style={{ ...F.knap, marginTop: 14, opacity: tjekker ? 0.6 : 1 }}
+          onClick={bekraeft} disabled={tjekker || kode.length !== 6}>
+          {tjekker ? "Et \u00f8jeblik\u2026" : "Log ind"}
+        </button>
+        <button style={{ ...F.knap2, marginTop: 8 }}
+          onClick={() => { setSendt(false); setKode(""); setFejl(""); }}>
+          Brug en anden mail
         </button>
       </div>
     );
@@ -68,10 +104,10 @@ function LogInd({ forside, slug }) {
   return (
     <div style={F.kort}>
       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
-        {forside?.visningsnavn ? `Log ind — ${forside.visningsnavn}` : "Log ind"}
+        {forside?.visningsnavn ? `Log ind \u2014 ${forside.visningsnavn}` : "Log ind"}
       </div>
       <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginBottom: 14 }}>
-        Skriv din mail, så sender vi et link du kan logge ind med. Der er ingen
+        Skriv din mail, s\u00e5 sender vi en kode du kan logge ind med. Der er ingen
         adgangskode at huske.
       </div>
       <input style={F.felt} type="email" value={email} inputMode="email" autoComplete="email"
@@ -80,10 +116,10 @@ function LogInd({ forside, slug }) {
         onKeyDown={(e) => e.key === "Enter" && send()} />
       <button style={{ ...F.knap, marginTop: 14, opacity: sender ? 0.6 : 1 }}
         onClick={send} disabled={sender || !email.includes("@")}>
-        {sender ? "Sender…" : "Send mig et link"}
+        {sender ? "Sender\u2026" : "Send mig en kode"}
       </button>
       <div style={F.hint}>
-        Kan du ikke komme ind? Ring til kontoret, så opretter vi dig.
+        Kan du ikke komme ind? Ring til kontoret, s\u00e5 opretter vi dig.
       </div>
     </div>
   );
@@ -420,8 +456,11 @@ function Brugere({ mig }) {
 function Hjaelp({ mig }) {
   const afsnit = [
     ["Sådan logger du ind", [
-      "Der er ingen adgangskode. Du skriver din mail, og vi sender et link du trykker på.",
-      "Linket virker én gang og udløber efter en time. Bed roligt om et nyt hvis det er brugt.",
+      "Der er ingen adgangskode. Du skriver din mail, og vi sender dig en sekscifret kode.",
+      "Skriv koden i feltet der venter i browseren. Hold fanen åben imens — det er dér koden skal ind.",
+      "Koden virker én gang og udløber efter en time. Bed roligt om en ny hvis den er brugt.",
+      "Vi sender en kode og ikke et link, fordi mange firmaers sikkerhedsfilter åbner links automatisk for at scanne dem. Det brugte login'et op, før du selv nåede at trykke.",
+      "Giv aldrig koden videre. Vi beder dig aldrig om den i telefonen.",
       "Du forbliver logget ind på den enhed indtil du selv logger ud.",
     ]],
     ["Opgaver", [
