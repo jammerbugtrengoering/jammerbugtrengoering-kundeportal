@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { db, kaldAaben } from "./db.js";
-import { F, kr, dato, datoKort, tid } from "./stil.js";
+import { F, kr, datoKort, tid } from "./stil.js";
 
 // Kundens egen side: hendes opgaver, hendes fakturaer, hendes kolleger.
 //
