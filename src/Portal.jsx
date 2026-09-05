@@ -689,6 +689,40 @@ function Hjaelp({ mig }) {
       "Interne oplysninger som medarbejdernes løn, vores kostpriser og noter mellem kontoret og medarbejderne kommer aldrig med.",
       "Har du brug for noget der ikke står her, så ring til kontoret.",
     ]],
+    // Skrevet ud fra de felter der faktisk findes i databasen, ikke ud fra en
+    // skabelon. Aendrer vi hvad portalen gemmer, skal teksten her rettes med.
+    ["Sådan behandler vi jeres oplysninger", [
+      "Jammerbugt Rengøring er ansvarlig for de oplysninger, vi gemmer om jer. Her står hvad det er.",
+      "Om jer: firmanavn eller navn, adresse, kontaktperson og e-mail. Til portalen desuden hvem der har adgang, og hvem der er administrator.",
+      "Om arbejdet: hvad der er aftalt, hvornår det er udført, hvor lang tid det tog, og de noter og billeder medarbejderen lægger på opgaven.",
+      "Adgangsforhold til jeres adresse, hvis vi skal kunne komme ind — se afsnittet nedenfor.",
+      "Om økonomien: fakturaer, priser og aftalte satser.",
+      "Bestiller I ekstra arbejde, gemmer vi bestillingen med jeres ønskede dato og bemærkninger.",
+    ]],
+    ["Når I accepterer et tilbud", [
+      "Ud over jeres navn og e-mail gemmer vi tidspunktet, IP-adressen og hvilken browser der blev brugt, sammen med et fingeraftryk af selve dokumentet.",
+      "Det er alene, for at begge parter kan dokumentere hvad der blev aftalt, og hvornår. Fingeraftrykket betyder, at indholdet ikke kan ændres bagefter — hverken af jer eller af os.",
+      "Vi beder ikke om jeres samtykke til det, og det er med vilje. Grundlaget er dokumentation for en indgået aftale. Et samtykke kunne trækkes tilbage, og så stod begge parter uden bevis for den aftale, I netop havde accepteret.",
+      "Oplysningerne bruges ikke til noget andet, og de videregives ikke.",
+    ]],
+    ["Nøglebokskoder og adgang til jeres adresse", [
+      "Har I givet os en kode, ligger den ikke i medarbejdernes app og gemmes ikke på deres telefon.",
+      "Koden hentes én ad gangen, og først når systemet har kontrolleret, at medarbejderen faktisk er sat på netop jeres opgave.",
+      "Hvert eneste opslag bliver logget med hvem der hentede den, hvilken opgave og hvornår. Vi kan altså altid svare på, hvem der har haft koden.",
+      "Koden slettes automatisk tre måneder efter, at opgaven er afsluttet.",
+    ]],
+    ["Hvor jeres oplysninger ligger", [
+      "Databasen ligger hos Supabase i Frankfurt. Portalens sider leveres af Netlify, hvor der ikke ligger nogen personoplysninger.",
+      "Mails sendes gennem Brevo i Frankrig. Fakturaer behandles i Dinero i Danmark.",
+      "Skal vi beregne afstanden til jeres adresse, sendes selve adressen til statens adresseregister og til et tysk ruteberegningsfirma. De får adressen, men ingen navne.",
+      "Billeder fra opgaver slettes automatisk efter 12 måneder. Vil I have dem slettet før, siger I bare til — vi har en funktion til netop det.",
+    ]],
+    ["Jeres rettigheder", [
+      "I har ret til at få at vide, hvad vi har registreret om jer, og til at få rettet noget der er forkert.",
+      "I kan bede om at få oplysninger slettet. Fakturaer og aftaledokumentation skal vi dog gemme, så længe bogføringsloven kræver det.",
+      "Er arbejdet visiteret af kommunen, er det kommunen der er ansvarlig for oplysningerne om borgeren. Henvendelser om dem skal rettes til kommunen — vi udfører alene arbejdet efter deres instruks.",
+      "Ring til kontoret, hvis I vil gøre brug af noget af det, eller hvis I har spørgsmål til, hvordan vi behandler jeres oplysninger.",
+    ]],
   ];
 
   return (

@@ -305,6 +305,14 @@ export default function Tilbud() {
               hvornår. Indholdet kan ikke ændres bagefter. Oplysningerne bruges ikke til
               andet og videregives ikke.
             </div>
+            {/* Den her side naas gennem et link og kraever ikke login, saa kunden har
+                ingen vej til den fulde privatlivspolitik i portalen. Derfor staar
+                henvisningen her — ellers ville vi fortaelle hvad vi tager, uden at
+                fortaelle hvad man kan goere ved det. */}
+            <div style={{ marginTop: 6 }}>
+              Du kan altid få oplyst, hvad vi har registreret om dig, og få rettet noget
+              der er forkert. Ring til kontoret.
+            </div>
           </div>
 
           <button style={{ ...F.knap, marginTop: 14, opacity: accepterer ? 0.6 : 1 }}
