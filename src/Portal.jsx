@@ -712,7 +712,7 @@ function Hjaelp({ mig }) {
       "Koden slettes automatisk tre måneder efter, at opgaven er afsluttet.",
     ]],
     ["Hvor jeres oplysninger ligger", [
-      "Databasen ligger hos Supabase i Frankfurt. Portalens sider leveres af Netlify, hvor der ikke ligger nogen personoplysninger.",
+      "Databasen ligger hos Supabase i Stockholm. Portalens sider leveres af Netlify, hvor der ikke ligger nogen personoplysninger.",
       "Mails sendes gennem Brevo i Frankrig. Fakturaer behandles i Dinero i Danmark.",
       "Skal vi beregne afstanden til jeres adresse, sendes selve adressen til statens adresseregister og til et tysk ruteberegningsfirma. De får adressen, men ingen navne.",
       "Billeder fra opgaver slettes automatisk efter 12 måneder. Vil I have dem slettet før, siger I bare til — vi har en funktion til netop det.",
