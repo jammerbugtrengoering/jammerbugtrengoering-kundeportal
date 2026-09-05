@@ -280,16 +280,37 @@ export default function Tilbud() {
             </div>
           )}
 
-          <button style={{ ...F.knap, marginTop: 16, opacity: accepterer ? 0.6 : 1 }}
+          {/* Oplysningen staar FOER knappen, ikke under den. Den skal laeses inden man
+              trykker, ikke bagefter — det er hele meningen med at oplyse om det.
+
+              Teksten stod her foer og naevnte navn, tidspunkt og dokumentets
+              fingeraftryk. Den var ikke forkert, men den var ufuldstaendig: vi gemmer
+              ogsaa IP-adresse og browser, som serveren selv laeser af kaldet. En liste,
+              der ser udtoemmende ud og ikke er det, er vaerre end ingen liste — kunden
+              regner med at have faaet det hele at vide.
+
+              Det er en OPLYSNING og ikke et samtykke, og derfor er der ingen afkrydsning.
+              Grundlaget er dokumentation for en indgaaet aftale. Bad vi om samtykke,
+              kunne kunden traekke det tilbage bagefter — og saa stod vi uden bevis for
+              den aftale, han netop havde skrevet under paa. */}
+          <div style={{ ...F.hint, marginTop: 16, background: "#F8FAFC",
+                        border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 12px" }}>
+            <div style={{ fontWeight: 700, color: "#475569", marginBottom: 3 }}>
+              Det gemmer vi, når du accepterer
+            </div>
+            Dit navn og din e-mail, tidspunktet, din IP-adresse og hvilken browser du
+            bruger — sammen med et fingeraftryk af netop dette dokument.
+            <div style={{ marginTop: 6 }}>
+              Det er alene, for at begge parter kan dokumentere hvad der blev aftalt, og
+              hvornår. Indholdet kan ikke ændres bagefter. Oplysningerne bruges ikke til
+              andet og videregives ikke.
+            </div>
+          </div>
+
+          <button style={{ ...F.knap, marginTop: 14, opacity: accepterer ? 0.6 : 1 }}
             onClick={accepter} disabled={accepterer}>
             {accepterer ? "Sender…" : "Jeg accepterer tilbuddet"}
           </button>
-
-          <div style={F.hint}>
-            Når du accepterer, registrerer vi dit navn, tidspunktet og et fingeraftryk af
-            netop dette dokument. Det er for at begge parter kan dokumentere hvad der blev
-            aftalt — indholdet kan ikke ændres bagefter.
-          </div>
         </div>
       )}
     </Ramme>
