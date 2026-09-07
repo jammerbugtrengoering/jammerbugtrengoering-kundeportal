@@ -73,7 +73,7 @@ function LogInd({ forside, slug }) {
     setTjekker(false);
     // Lykkes det, opdager onAuthStateChange det selv og siden skifter. Her er der
     // kun noget at goere hvis det gik galt.
-    if (error) { setFejl("Koden passer ikke, eller den er udl\u00f8bet."); setKode(""); }
+    if (error) { setFejl("Koden passer ikke, eller den er udløbet."); setKode(""); }
   }
 
   if (sendt) {
@@ -93,7 +93,7 @@ function LogInd({ forside, slug }) {
         {fejl && <div style={{ ...F.hint, color: "#B91C1C", marginTop: 8 }}>{fejl}</div>}
         <button style={{ ...F.knap, marginTop: 14, opacity: tjekker ? 0.6 : 1 }}
           onClick={bekraeft} disabled={tjekker || kode.length < 6}>
-          {tjekker ? "Et \u00f8jeblik\u2026" : "Log ind"}
+          {tjekker ? "Et øjeblik…" : "Log ind"}
         </button>
         <button style={{ ...F.knap2, marginTop: 8 }}
           onClick={() => { setSendt(false); setKode(""); setFejl(""); }}>
@@ -106,10 +106,10 @@ function LogInd({ forside, slug }) {
   return (
     <div style={F.kort}>
       <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
-        {forside?.visningsnavn ? `Log ind \u2014 ${forside.visningsnavn}` : "Log ind"}
+        {forside?.visningsnavn ? `Log ind — ${forside.visningsnavn}` : "Log ind"}
       </div>
       <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginBottom: 14 }}>
-        Skriv din mail, s\u00e5 sender vi en kode du kan logge ind med. Der er ingen
+        Skriv din mail, så sender vi en kode du kan logge ind med. Der er ingen
         adgangskode at huske.
       </div>
       <input style={F.felt} type="email" value={email} inputMode="email" autoComplete="email"
@@ -118,10 +118,10 @@ function LogInd({ forside, slug }) {
         onKeyDown={(e) => e.key === "Enter" && send()} />
       <button style={{ ...F.knap, marginTop: 14, opacity: sender ? 0.6 : 1 }}
         onClick={send} disabled={sender || !email.includes("@")}>
-        {sender ? "Sender\u2026" : "Send mig en kode"}
+        {sender ? "Sender…" : "Send mig en kode"}
       </button>
       <div style={F.hint}>
-        Kan du ikke komme ind? Ring til kontoret, s\u00e5 opretter vi dig.
+        Kan du ikke komme ind? Ring til kontoret, så opretter vi dig.
       </div>
     </div>
   );
@@ -459,7 +459,7 @@ function Brugere({ mig }) {
 // Kun paa Udvidet. Kunden vaelger en ydelse fra listen eller skriver sit eget
 // oenske, og bestillingen gaar til planlaeggeren som et OENSKE - ikke som en
 // opgave. Derfor staar der heller ingen pris nogen steder: bestillingen er ikke
-// en aftale endnu, og et bel\u00f8b paa skaermen ville blive laest som et tilsagn.
+// en aftale endnu, og et beloeb paa skaermen ville blive laest som et tilsagn.
 // Godkendt arbejde faktureres bagefter ad samme vej som alt andet.
 const BESTIL_STATUS = {
   ny:       { tekst: "Afventer svar", farve: "#B45309", bag: "#FFFBEB" },
@@ -516,7 +516,7 @@ function Bestil({ mig }) {
       bestilt_af_navn: mig.mit_navn ?? null,
     });
     setSender(false);
-    if (error) { setFejl("Bestillingen kunne ikke sendes. Pr\u00f8v igen, eller ring til kontoret."); return; }
+    if (error) { setFejl("Bestillingen kunne ikke sendes. Prøv igen, eller ring til kontoret."); return; }
 
     setYdelseId(""); setFritekst(""); setDato(""); setAdresse(""); setBemaerkning("");
     setKvittering(true);
@@ -595,7 +595,7 @@ function Bestil({ mig }) {
 
         <button style={{ ...F.knap, marginTop: 18, opacity: kanSende && !sender ? 1 : 0.5 }}
           onClick={send} disabled={!kanSende || sender}>
-          {sender ? "Sender\u2026" : "Send bestilling"}
+          {sender ? "Sender…" : "Send bestilling"}
         </button>
         <div style={F.hint}>
           Vi ringer eller skriver, før arbejdet sættes i gang. Der trækkes ingen betaling
@@ -605,7 +605,7 @@ function Bestil({ mig }) {
 
       <div style={F.kort}>
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 10 }}>Jeres bestillinger</div>
-        {mine === null && <div style={{ color: "#94A3B8", fontSize: 14 }}>Henter\u2026</div>}
+        {mine === null && <div style={{ color: "#94A3B8", fontSize: 14 }}>Henter…</div>}
         {mine?.length === 0 && (
           <div style={{ color: "#94A3B8", fontSize: 14, lineHeight: 1.6 }}>
             I har ikke bestilt noget endnu.
