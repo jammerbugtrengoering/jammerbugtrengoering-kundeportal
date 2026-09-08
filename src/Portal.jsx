@@ -237,6 +237,205 @@ function Opgaver() {
   );
 }
 
+// ── Kalender ─────────────────────────────────────────────────────────────────
+//
+// Kundens uge hos os. Samme data som fanen Opgaver — det er den samme view,
+// portal_opgaver, som allerede er afgraenset til kundens eget dinero_contact_guid.
+// Der bliver altsaa ikke synligt noget nyt; det bliver bare laesbart som en uge i
+// stedet for to lister.
+//
+// Hvorfor en kalender overhovedet: to lister svarer paa "hvad er sket" og "hvad er
+// aftalt". En kunde spoerger om noget tredje — "kommer I i denne uge?" — og det
+// spoergsmaal kan man ikke svare paa uden at laese begge lister og selv holde styr
+// paa datoerne.
+//
+// Knappen paa de tomme dage er ikke pynt. Uden den er kalenderen en kvittering for
+// noget, der allerede er besluttet. Med den bliver et hul i ugen til en anledning.
+
+const UGEDAGE = ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"];
+
+// Mandag i den uge en dato ligger i. Lokale datoer hele vejen — bruger man
+// toISOString undervejs, skifter datoen en time om sommeren.
+function mandagFor(d) {
+  const x = new Date(d);
+  x.setHours(12, 0, 0, 0);                       // midt paa dagen: immun over for sommertid
+  const forskydning = (x.getDay() + 6) % 7;      // man=0 … søn=6
+  x.setDate(x.getDate() - forskydning);
+  return x;
+}
+
+function isoDato(d) {
+  const x = new Date(d);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+}
+
+function ugeNummer(d) {
+  const x = new Date(d);
+  x.setHours(12, 0, 0, 0);
+  x.setDate(x.getDate() + 3 - ((x.getDay() + 6) % 7));
+  const foersteTorsdag = new Date(x.getFullYear(), 0, 4);
+  foersteTorsdag.setHours(12, 0, 0, 0);
+  foersteTorsdag.setDate(foersteTorsdag.getDate() + 3 - ((foersteTorsdag.getDay() + 6) % 7));
+  return 1 + Math.round((x - foersteTorsdag) / (7 * 24 * 3600 * 1000));
+}
+
+function Kalender({ mig, onBedOmBesoeg }) {
+  const [opgaver, setOpgaver] = useState(null);
+  const [bestilteIder, setBestilteIder] = useState(new Set());
+  const [fejl, setFejl] = useState("");
+  const [mandag, setMandag] = useState(() => mandagFor(new Date()));
+
+  useEffect(() => {
+    (async () => {
+      const [o, b] = await Promise.all([
+        db.from("portal_opgaver").select("*"),
+        db.rpc("hent_portal_bestillinger"),
+      ]);
+      // Fejlen maa ikke kastes vaek. En tom uge og "kunne ikke hentes" ser ens ud,
+      // og forskellen er om kunden skal ringe til os eller ej.
+      if (o.error) { setFejl(o.error.message); setOpgaver([]); return; }
+      setOpgaver(o.data ?? []);
+      // Bestillinger er ikke kritiske for kalenderen — de bestemmer kun et maerke.
+      // Fejler de, viser vi ugen alligevel.
+      setBestilteIder(new Set((b.data ?? []).map((x) => x.instance_id).filter(Boolean)));
+    })();
+  }, []);
+
+  if (opgaver === null) return <div style={{ ...F.kort, color: "#94A3B8" }}>Henter kalenderen…</div>;
+  if (fejl) return <div style={{ ...F.kort, color: "#B91C1C" }}>Kalenderen kunne ikke hentes. Prøv igen om lidt.</div>;
+
+  const dage = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mandag);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const iDag = isoDato(new Date());
+
+  const forDag = (iso) => opgaver
+    .filter((o) => String(o.dato).slice(0, 10) === iso)
+    .sort((a, b) => String(a.tidspunkt || "99").localeCompare(String(b.tidspunkt || "99")));
+
+  // Weekend vises kun naar der faktisk sker noget. Fem tomme rubrikker med
+  // "Ingen besøg" hver uge er stoej for en kunde, der aldrig faar rengjort om
+  // soendagen.
+  const synligeDage = dage.filter((d, i) => i < 5 || forDag(isoDato(d)).length > 0);
+
+  const slut = new Date(mandag); slut.setDate(slut.getDate() + 4);
+  const maanedTekst = mandag.getMonth() === slut.getMonth()
+    ? `${mandag.getDate()}.–${slut.getDate()}. ${slut.toLocaleDateString("da-DK", { month: "long", year: "numeric" })}`
+    : `${mandag.getDate()}. ${mandag.toLocaleDateString("da-DK", { month: "short" })} – ${slut.getDate()}. ${slut.toLocaleDateString("da-DK", { month: "short", year: "numeric" })}`;
+
+  function skiftUge(uger) {
+    const n = new Date(mandag);
+    n.setDate(n.getDate() + uger * 7);
+    setMandag(n);
+  }
+
+  const maerke = (tekst, farve, bag) => (
+    <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                   background: bag, color: farve, whiteSpace: "nowrap" }}>{tekst}</span>
+  );
+
+  return (
+    <div style={F.kort}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                    marginBottom: 6 }}>
+        <button onClick={() => skiftUge(-1)} aria-label="Forrige uge"
+          style={{ border: "none", background: "transparent", cursor: "pointer",
+                   fontSize: 22, color: "#64748B", padding: "4px 12px", minHeight: 44 }}>‹</button>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>Uge {ugeNummer(mandag)}</div>
+          <div style={{ fontSize: 12.5, color: "#94A3B8" }}>{maanedTekst}</div>
+        </div>
+        <button onClick={() => skiftUge(1)} aria-label="Næste uge"
+          style={{ border: "none", background: "transparent", cursor: "pointer",
+                   fontSize: 22, color: "#64748B", padding: "4px 12px", minHeight: 44 }}>›</button>
+      </div>
+
+      {isoDato(mandag) !== isoDato(mandagFor(new Date())) && (
+        <button style={{ ...F.knap2, marginBottom: 10, padding: "9px 0", fontSize: 13.5 }}
+          onClick={() => setMandag(mandagFor(new Date()))}>Gå til denne uge</button>
+      )}
+
+      {synligeDage.map((d) => {
+        const iso = isoDato(d);
+        const dagens = forDag(iso);
+        const erIDag = iso === iDag;
+        const erFortid = iso < iDag;
+        return (
+          <div key={iso} style={{ display: "flex", gap: 14, padding: "12px 0",
+                                  borderBottom: "1px solid #F1F5F9" }}>
+            <div style={{ width: 68, flexShrink: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700,
+                            color: erIDag ? "#D6247A" : dagens.length ? "#111111" : "#94A3B8" }}>
+                {UGEDAGE[(d.getDay() + 6) % 7]} {d.getDate()}.
+              </div>
+              {erIDag && <div style={{ fontSize: 11, fontWeight: 700, color: "#D6247A" }}>i dag</div>}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {dagens.length === 0 ? (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                              gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 13.5, color: "#94A3B8" }}>Ingen besøg</span>
+                  {/* Kun fremad, og kun paa den udvidede portal. At bede om et besoeg
+                      i sidste uge giver ingen mening, og knappen skal ikke findes for
+                      kunder der ikke kan bestille. */}
+                  {!erFortid && mig.option === "udvidet" && (
+                    <button onClick={() => onBedOmBesoeg(iso)}
+                      style={{ border: "1.5px solid #E2E8F0", background: "#fff", color: "#334155",
+                               borderRadius: 999, padding: "7px 14px", fontSize: 12.5,
+                               fontWeight: 700, cursor: "pointer", minHeight: 38 }}>
+                      Bed om et besøg
+                    </button>
+                  )}
+                </div>
+              ) : dagens.map((o) => {
+                const bestilt = bestilteIder.has(o.id);
+                const udfoert = o.status === "udført";
+                // STATUS_TEKST og ikke mine egne maerkater. Foerste udgave skrev
+                // "Planlagt" paa alt der ikke var udfoert — ogsaa paa opgaver med
+                // status unscheduled, som endnu ikke har en medarbejder paa. Kunden
+                // ville have faaet et loefte, planen ikke havde givet.
+                const st = STATUS_TEKST[o.status] || STATUS_TEKST.planlagt;
+                return (
+                  <div key={o.id} style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                      {/* Aftalt klokkeslaet staar med fed. Er der ingen aftalt tid,
+                          staar der slet ingen — et beregnet tidspunkt ville blive
+                          laest som et loefte, og det er ikke vores at give her. */}
+                      {o.tidspunkt && (
+                        <span style={{ fontSize: 14, fontWeight: 700 }}>
+                          {String(o.tidspunkt).slice(0, 5)}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 14, color: "#111111" }}>{o.titel}</span>
+                      {maerke(st.tekst, st.farve, st.bag)}
+                      {bestilt && maerke("Jeres bestilling", "#9C1B5D", "#FCE4EF")}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: "#94A3B8", marginTop: 2 }}>
+                      {udfoert && o.registreret_minutter > 0 ? tid(o.registreret_minutter) : null}
+                      {udfoert && o.registreret_minutter > 0 && o.udfoert_af ? " · " : null}
+                      {udfoert && o.udfoert_af ? o.udfoert_af : null}
+                      {!udfoert && o.planlagt_minutter ? `Afsat ${tid(o.planlagt_minutter)}` : null}
+                      {!o.tidspunkt && !udfoert ? " · tidspunkt ikke aftalt" : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={F.hint}>
+        Kalenderen viser det, der er planlagt lige nu. Bliver et besøg flyttet, ændrer
+        ugen sig — ring til kontoret, hvis noget ser forkert ud.
+      </div>
+    </div>
+  );
+}
+
 // ── Fakturaer ────────────────────────────────────────────────────────────────
 function Faktura({ f }) {
   const [aaben, setAaben] = useState(false);
@@ -467,12 +666,15 @@ const BESTIL_STATUS = {
   afvist:   { tekst: "Afvist",        farve: "#B91C1C", bag: "#FEF2F2" },
 };
 
-function Bestil({ mig }) {
+// startDato kommer fra kalenderen, naar kunden trykker "Bed om et besoeg" paa en
+// tom dag. Uden den skulle hun selv finde datoen frem igen — og saa er halvdelen af
+// pointen med knappen vaek.
+function Bestil({ mig, startDato }) {
   const [ydelser, setYdelser] = useState([]);
   const [mine, setMine] = useState(null);
   const [ydelseId, setYdelseId] = useState("");
   const [fritekst, setFritekst] = useState("");
-  const [dato, setDato] = useState("");
+  const [dato, setDato] = useState(startDato || "");
   const [adresse, setAdresse] = useState("");
   const [bemaerkning, setBemaerkning] = useState("");
   const [sender, setSender] = useState(false);
@@ -684,6 +886,15 @@ function Hjaelp({ mig }) {
       "En administrator kan også gøre en kollega til administrator.",
       "Man kan ikke lukke sin egen adgang — ellers kunne den sidste administrator komme til at låse jer alle ude.",
     ]],
+    ["Kalenderen", [
+      "Fanen Kalender viser jeres uge hos os: hvilke dage vi kommer, hvad der er aftalt, og hvad der er lavet.",
+      "Bladr mellem ugerne med pilene. Står der «i dag» ud for en dag, er det den, I står på.",
+      "Er klokkeslættet skrevet med fed, er det den tid, der er aftalt. Står der «tidspunkt ikke aftalt», kommer vi den dag, men vi har ikke lovet et klokkeslæt.",
+      "«Ikke planlagt endnu» betyder, at dagen er aftalt, men at vi endnu ikke har sat en medarbejder på. Det plejer at falde på plads ugen før.",
+      "Har I den udvidede portal, kan I bede om et besøg direkte fra en tom dag. Så åbnes bestillingen med datoen udfyldt.",
+      "Bestillinger, vi har sagt ja til, står i kalenderen med mærket «Jeres bestilling».",
+      "Kalenderen viser det, der er planlagt lige nu. Ser en uge tom ud, hvor I havde ventet et besøg, så ring til kontoret — det er ikke sikkert, det er med vilje.",
+    ]],
     ["Hvad vi kan se, og hvad vi ikke kan", [
       "Du ser kun jeres egne opgaver og fakturaer. Det er afgrænset i databasen, ikke bare i skærmbilledet.",
       "Interne oplysninger som medarbejdernes løn, vores kostpriser og noter mellem kontoret og medarbejderne kommer aldrig med.",
@@ -751,6 +962,9 @@ export default function Portal({ slug }) {
   const [mig, setMig] = useState(null);
   const [forside, setForside] = useState(null);
   const [fane, setFane] = useState("opgaver");
+  // Datoen kunden trykkede paa i kalenderen. Ligger her og ikke i Bestil, fordi den
+  // skal overleve skiftet mellem de to faner.
+  const [bestilDato, setBestilDato] = useState("");
   const [henterMig, setHenterMig] = useState(false);
 
   // Navn og logo på login-siden, så kunden kan se at hun er landet det rigtige sted.
@@ -810,6 +1024,7 @@ export default function Portal({ slug }) {
 
   const faner = [
     ["opgaver", "Opgaver"],
+    ["kalender", "Kalender"],
     ["fakturaer", "Fakturaer"],
     ...(mig.option === "udvidet" ? [["bestil", "Bestil"]] : []),
     ["brugere", "Brugere"],
@@ -838,8 +1053,16 @@ export default function Portal({ slug }) {
       </div>
 
       {fane === "opgaver" && <Opgaver />}
+      {fane === "kalender" && (
+        <Kalender mig={mig} onBedOmBesoeg={(d) => { setBestilDato(d); setFane("bestil"); }} />
+      )}
       {fane === "fakturaer" && <Fakturaer />}
-      {fane === "bestil" && mig.option === "udvidet" && <Bestil mig={mig} />}
+      {/* key paa datoen tvinger en frisk formular, naar man kommer fra en anden dag i
+          kalenderen. Uden den ville useState beholde den foerste dato, fordi
+          startvaerdien kun laeses én gang. */}
+      {fane === "bestil" && mig.option === "udvidet" && (
+        <Bestil key={bestilDato || "tom"} mig={mig} startDato={bestilDato} />
+      )}
       {fane === "brugere" && <Brugere mig={mig} />}
       {fane === "hjaelp" && <Hjaelp mig={mig} />}
     </>
