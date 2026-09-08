@@ -146,7 +146,9 @@ function Opgave({ o }) {
         </div>
         <div style={{ fontSize: 13, color: "#64748B", marginTop: 3 }}>
           {datoKort(o.dato)}
-          {o.tidspunkt ? ` · kl. ${o.tidspunkt}` : ""}
+          {/* slice(0,5): feltet er en tid med sekunder, saa der stod "kl. 13:00:00".
+              Ingen aftaler et besoeg paa sekundet. */}
+          {o.tidspunkt ? ` · kl. ${String(o.tidspunkt).slice(0, 5)}` : ""}
           {o.status === "udført" && o.registreret_minutter > 0 ? ` · ${tid(o.registreret_minutter)}` : ""}
           {punkter.length > 0 ? ` · ${udfoerte} af ${punkter.length} punkter` : ""}
         </div>
@@ -473,7 +475,7 @@ function Faktura({ f }) {
     <div style={{ borderBottom: "1px solid #F1F5F9", padding: "12px 0" }}>
       <div onClick={foldUd} style={{ cursor: "pointer", minHeight: 44,
                                      display: "flex", justifyContent: "space-between", gap: 10 }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700 }}>{fakturaNummer(f)}</div>
           <div style={{ fontSize: 13, color: "#64748B", marginTop: 3 }}>
             {datoKort(f.Date)}
@@ -495,7 +497,7 @@ function Faktura({ f }) {
               {linjer.linjer.map((l, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between",
                                       gap: 10, fontSize: 13.5, padding: "5px 0" }}>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div>{l.beskrivelse}</div>
                     {l.bemaerkning && <div style={{ color: "#94A3B8", fontSize: 12.5 }}>{l.bemaerkning}</div>}
                     <div style={{ color: "#94A3B8", fontSize: 12.5 }}>
@@ -961,7 +963,7 @@ export default function Portal({ slug }) {
   const [session, setSession] = useState(undefined);   // undefined = ved det ikke endnu
   const [mig, setMig] = useState(null);
   const [forside, setForside] = useState(null);
-  const [fane, setFane] = useState("opgaver");
+  const [fane, setFane] = useState("kalender");
   // Datoen kunden trykkede paa i kalenderen. Ligger her og ikke i Bestil, fordi den
   // skal overleve skiftet mellem de to faner.
   const [bestilDato, setBestilDato] = useState("");
@@ -1022,11 +1024,14 @@ export default function Portal({ slug }) {
     );
   }
 
+  // Kalenderen foerst og som standard. Det er den fane, der svarer paa det, kunden
+  // oftest ringer om — "kommer I i denne uge?" — og de oevrige er opslag, man gaar
+  // efter med vilje.
   const faner = [
-    ["opgaver", "Opgaver"],
     ["kalender", "Kalender"],
-    ["fakturaer", "Fakturaer"],
+    ["opgaver", "Opgaver"],
     ...(mig.option === "udvidet" ? [["bestil", "Bestil"]] : []),
+    ["fakturaer", "Fakturaer"],
     ["brugere", "Brugere"],
     ["hjaelp", "Hjælp"],
   ];
@@ -1035,17 +1040,22 @@ export default function Portal({ slug }) {
     <>
       <div style={{ ...F.kort, display: "flex", justifyContent: "space-between",
                     alignItems: "center", gap: 12, padding: "14px 18px" }}>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>{mig.visningsnavn}</div>
-          <div style={{ fontSize: 12.5, color: "#94A3B8" }}>{mig.mit_navn || mig.min_email}</div>
+        {/* minWidth 0 og ellipsis: uden dem skubber et langt firmanavn eller en lang
+            mailadresse "Log ud" ud over kanten paa en telefon. En flex-boks kryber
+            ikke under sit indhold af sig selv. */}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, overflow: "hidden",
+                        textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{mig.visningsnavn}</div>
+          <div style={{ fontSize: 12.5, color: "#94A3B8", overflow: "hidden",
+                        textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{mig.mit_navn || mig.min_email}</div>
         </div>
         <button style={{ background: "none", border: "none", cursor: "pointer",
                          fontSize: 13, fontWeight: 700, color: "#64748B", minHeight: 44 }}
           onClick={() => db.auth.signOut()}>Log ud</button>
       </div>
 
-      <div style={{ display: "flex", gap: 4, background: "#F1F5F9", borderRadius: 12,
-                    padding: 4, marginBottom: 14 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, background: "#F1F5F9",
+                    borderRadius: 12, padding: 4, marginBottom: 14 }}>
         {faner.map(([k, navn]) => (
           <button key={k} onClick={() => setFane(k)}
             style={{ ...F.fane, ...(fane === k ? F.faneAktiv : {}) }}>{navn}</button>

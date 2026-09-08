@@ -5,9 +5,14 @@
 // stilen to steder, driver de fra hinanden uden at nogen opdager det.
 
 export const F = {
-  side: { maxWidth: 640, margin: "0 auto", padding: "24px 18px 60px" },
+  // clamp i stedet for mediesporgsmaal: stilen ligger i JavaScript-objekter, og et
+  // mediesporgsmaal kan ikke skrives inline. clamp() kan, og den skalerer bloedt i
+  // stedet for at hoppe ved en enkelt braekgraense.
+  side: { maxWidth: 640, margin: "0 auto",
+          padding: "clamp(14px, 4vw, 24px) clamp(12px, 3.5vw, 18px) 60px" },
   kort: {
-    background: "#fff", borderRadius: 14, padding: "20px 22px", marginBottom: 14,
+    background: "#fff", borderRadius: 14, marginBottom: 14,
+    padding: "clamp(14px, 4vw, 20px) clamp(14px, 4.5vw, 22px)",
     boxShadow: "0 1px 3px rgba(15,23,42,0.07)",
   },
   maerkat: {
@@ -34,9 +39,20 @@ export const F = {
     fontSize: 16, background: "#fff", color: "#111111", boxSizing: "border-box",
   },
   hint: { fontSize: 12.5, color: "#64748B", lineHeight: 1.55, marginTop: 8 },
+  // Seks faner kan ikke staa paa én linje paa en telefon. De ombryder til to raekker
+  // i stedet for at skulle rulles vandret — en fane, man ikke kan se, findes ikke for
+  // den, der leder efter den. flexBasis holder tre pr. raekke paa en smal skaerm.
+  // "1 0 88px" og ikke en procentdel: 88 px er den bredde, «Fakturaer» skal bruge, og
+  // uden krympning kan en fane aldrig blive smallere end sin tekst. De vokser og
+  // fylder linjen ud, naar der er plads til alle seks — og ombryder foerst, naar der
+  // ikke er. Paa en telefon giver det tre og tre, paa en computer én raekke.
+  //
+  // En procentbaseret basis virkede paa telefonen og braekkede paa computeren:
+  // seks faner à 28 % er 168 % og ombryder altid, uanset hvor bred skaermen er.
   fane: {
-    flex: 1, padding: "11px 4px", borderRadius: 10, border: "none", background: "transparent",
-    color: "#64748B", fontSize: 13.5, fontWeight: 700, cursor: "pointer", minHeight: 44,
+    flex: "1 0 88px", padding: "11px 4px", borderRadius: 10, border: "none",
+    background: "transparent", color: "#64748B", fontSize: 13.5, fontWeight: 700,
+    cursor: "pointer", minHeight: 44, whiteSpace: "nowrap",
   },
   faneAktiv: { background: "#fff", color: "#9C1B5D", boxShadow: "0 1px 3px rgba(15,23,42,0.10)" },
 };
