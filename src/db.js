@@ -4,8 +4,21 @@ import { createClient } from "@supabase/supabase-js";
 // giver i sig selv ingen adgang. Alt hvad kunden kan nå, er afgrænset i databasen med
 // current_portal_guid(), som læser hendes login og ikke noget hun selv kan sende med.
 // Ændres den afgrænsning nogensinde, er det DER hullet opstår, ikke her.
+//
+// 12.9.2026: nøglen læses nu FØRST fra miljøet, med værdien herunder som reserve.
+//
+// Der stod en VITE_SUPABASE_PUBLISHABLE_KEY i Netlify på portalen, og den gjorde
+// ingenting — koden læste den ikke. Det er den slags, der bider en dag nogen skifter
+// nøglen: man retter den på alle tre sites, de to følger med, og portalen bliver ved
+// med den gamle uden at sige noget. Portalen er kundernes indgang, så det er den, der
+// må vente længst på at nogen opdager det.
+//
+// Reserven bliver stående, så portalen også virker for en, der lige har klonet repoet
+// og ikke har sat noget op. Nøglen er offentlig; der er intet at beskytte ved at
+// fjerne den herfra.
 const URL = "https://gteowfoahsfpunzgdxum.supabase.co";
-const NOEGLE = "sb_publishable_GF49Zf5gHAm_nlNff-PuTA_4Cf8L-1e";
+const NOEGLE = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  || "sb_publishable_GF49Zf5gHAm_nlNff-PuTA_4Cf8L-1e";
 
 export const db = createClient(URL, NOEGLE, {
   auth: {
