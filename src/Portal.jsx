@@ -906,7 +906,7 @@ function Hjaelp({ mig }) {
     // skabelon. Aendrer vi hvad portalen gemmer, skal teksten her rettes med.
     ["Sådan behandler vi jeres oplysninger", [
       "Jammerbugt Rengøring er ansvarlig for de oplysninger, vi gemmer om jer. Her står hvad det er.",
-      "Om jer: firmanavn eller navn, adresse, kontaktperson og e-mail. Til portalen desuden hvem der har adgang, og hvem der er administrator.",
+      "Om jer: firmanavn eller navn, adresse, kontaktperson, telefonnummer og e-mail. Kontaktoplysningerne hentes fra jeres kundekort i vores regnskabsprogram, Dinero, og holdes opdateret derfra hver nat. Til portalen desuden hvem der har adgang, og hvem der er administrator.",
       "Om arbejdet: hvad der er aftalt, hvornår det er udført, hvor lang tid det tog, og de noter og billeder medarbejderen lægger på opgaven.",
       "Adgangsforhold til jeres adresse, hvis vi skal kunne komme ind — se afsnittet nedenfor.",
       "Om økonomien: fakturaer, priser og aftalte satser.",
@@ -923,6 +923,17 @@ function Hjaelp({ mig }) {
       "Koden hentes én ad gangen, og først når systemet har kontrolleret, at medarbejderen faktisk er sat på netop jeres opgave.",
       "Hvert eneste opslag bliver logget med hvem der hentede den, hvilken opgave og hvornår. Vi kan altså altid svare på, hvem der har haft koden.",
       "Koden slettes automatisk tre måneder efter, at opgaven er afsluttet.",
+    ]],
+    // Skrevet 23.9.2026, da telefon og kontaktperson kom med paa opgaven.
+    // Bevidst forskellig fra afsnittet om koden: koden hentes én ad gangen og ligger
+    // aldrig paa telefonen, men kontaktoplysningerne foelger med opgaven. Kun VISNINGEN
+    // er bag loggen. Teksten maa ikke love mere, end systemet goer.
+    ["Hvad medarbejderen kan se om jer", [
+      "Den medarbejder, der er sat på jeres opgave, kan se jeres kontaktperson og telefonnummer — så hun kan ringe, hvis hun ikke kan komme ind, eller hvis noget er anderledes end aftalt.",
+      "Oplysningerne vises først, når hun åbner adgangsoplysningerne, og det bliver logget på samme måde som koden: hvem, hvilken opgave og hvornår.",
+      "Til forskel fra koden følger telefonnummer og kontaktperson med opgaven ned på hendes telefon. Det gælder kun de opgaver, hun selv er sat på — hun kan ikke se andre kunders oplysninger.",
+      "Jeres e-mailadresse vises ikke for medarbejderen.",
+      "Er arbejdet visiteret af kommunen, vises kontaktoplysningerne slet ikke. De tilhører kommunen og ikke borgeren, der bor på adressen — og det er ikke kommunen, medarbejderen skal ringe til, når hun står ved døren.",
     ]],
     ["Hvor jeres oplysninger ligger", [
       "Databasen ligger hos Supabase i Stockholm. Portalens sider leveres af Netlify, hvor der ikke ligger nogen personoplysninger.",
