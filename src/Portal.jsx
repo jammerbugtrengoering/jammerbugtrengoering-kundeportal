@@ -861,6 +861,7 @@ function Hjaelp({ mig }) {
       "Vi sender en kode og ikke et link, fordi mange firmaers sikkerhedsfilter åbner links automatisk for at scanne dem. Det brugte login'et op, før du selv nåede at trykke.",
       "Giv aldrig koden videre. Vi beder dig aldrig om den i telefonen.",
       "Du forbliver logget ind på den enhed indtil du selv logger ud.",
+      "Er en anden allerede logget ind i browseren, bruger siden det login. Står der «Ingen adgang» med en anden mailadresse end din, så log ud og log ind med din egen.",
     ]],
     ["Opgaver", [
       "Under Planlagt står det arbejde der er aftalt fremad. Tryk på en opgave for at se adressen og hvad der er med i den.",
@@ -1027,10 +1028,21 @@ export default function Portal({ slug }) {
     return (
       <div style={F.kort}>
         <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>Ingen adgang</div>
+        {/* Hvem er logget ind? 28.9.2026: en invitation blev aabnet i en browser, hvor
+            en ANDEN portalbruger allerede var logget ind. Invitationen indeholder kun
+            adressen, saa siden brugte det gamle login — og sagde bare «ingen adgang».
+            Uden mailadressen her kunne ingen se, at det var det forkerte login. */}
         <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
-          Din konto er ikke koblet til en aktiv portal. Ring til kontoret, så finder vi ud af det.
+          Du er logget ind som <strong>{session.user?.email}</strong>, og den konto er ikke
+          koblet til en aktiv portal.
         </div>
-        <button style={{ ...F.knap2, marginTop: 16 }} onClick={() => db.auth.signOut()}>Log ud</button>
+        <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginTop: 8 }}>
+          Har du fået en invitation til en anden mailadresse, så log ud og log ind med den.
+          Ellers ring til kontoret, så finder vi ud af det.
+        </div>
+        <button style={{ ...F.knap2, marginTop: 16 }} onClick={() => db.auth.signOut()}>
+          Log ud og log ind med en anden mail
+        </button>
       </div>
     );
   }
