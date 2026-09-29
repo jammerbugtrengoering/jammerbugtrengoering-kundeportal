@@ -30,7 +30,7 @@ async function kald(krop) {
 
 function Ramme({ children }) {
   return (
-    <div style={F.side}>
+    <div style={{ ...F.side, maxWidth: 720 }}>
       <div style={{ marginBottom: 18 }}>
         <div style={{ fontSize: 19, fontWeight: 800, color: "var(--farve)" }}>{FIRMA.navn}</div>
       </div>

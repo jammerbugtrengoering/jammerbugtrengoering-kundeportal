@@ -2,7 +2,8 @@ import Tilbud from "./Tilbud.jsx";
 import Portal from "./Portal.jsx";
 import { F } from "./stil.js";
 import { db } from "./db.js";
-import { useFirma, brugTitel } from "./firma.js";
+import { useEffect } from "react";
+import { useFirma } from "./firma.js";
 
 // To helt forskellige sider i samme app:
 //
@@ -15,11 +16,14 @@ import { useFirma, brugTitel } from "./firma.js";
 function Ramme({ children, fod }) {
   // Navnet oeverst er firmaets (Opsaetning -> Firma i planlaegningsappen).
   const firma = useFirma(db);
-  brugTitel("navn");
+  // «Kundeportal» foerst (29.9.2026, Jonn): med kun firmanavnet oeverst troede man, man
+  // var inde i Jammerbugt Rengoerings egen side og ikke i sin egen portal.
+  useEffect(() => { document.title = `Kundeportal · ${firma.navn}`; }, [firma.navn]);
   return (
     <div style={F.side}>
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 19, fontWeight: 800, color: "var(--farve)" }}>{firma.navn}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "var(--farve)", lineHeight: 1.2 }}>Kundeportal</div>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: "#64748B", marginTop: 2 }}>hos {firma.navn}</div>
       </div>
       {children}
       <div style={{ ...F.hint, textAlign: "center", marginTop: 24 }}>{fod}</div>

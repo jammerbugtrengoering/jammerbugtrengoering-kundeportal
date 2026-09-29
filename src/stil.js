@@ -8,7 +8,9 @@ export const F = {
   // clamp i stedet for mediesporgsmaal: stilen ligger i JavaScript-objekter, og et
   // mediesporgsmaal kan ikke skrives inline. clamp() kan, og den skalerer bloedt i
   // stedet for at hoppe ved en enkelt braekgraense.
-  side: { maxWidth: 640, margin: "0 auto",
+  // 1040 og ikke 640 (29.9.2026): paa en computer stod alt klemt sammen i midten.
+  // Paa en telefon fylder siden stadig hele bredden — maxWidth rammer kun store skaerme.
+  side: { maxWidth: 1040, margin: "0 auto",
           padding: "clamp(14px, 4vw, 24px) clamp(12px, 3.5vw, 18px) 60px" },
   kort: {
     background: "#fff", borderRadius: 14, marginBottom: 14,
