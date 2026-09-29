@@ -384,7 +384,7 @@ function Kalender({ mig, onBedOmBesoeg }) {
                   {/* Kun fremad, og kun paa den udvidede portal. At bede om et besoeg
                       i sidste uge giver ingen mening, og knappen skal ikke findes for
                       kunder der ikke kan bestille. */}
-                  {!erFortid && mig.option === "udvidet" && (
+                  {!erFortid && kanBestille(mig) && (
                     <button onClick={() => onBedOmBesoeg(iso)}
                       style={{ border: "1.5px solid #E2E8F0", background: "#fff", color: "#334155",
                                borderRadius: 999, padding: "7px 14px", fontSize: 12.5,
@@ -654,6 +654,12 @@ function Brugere({ mig }) {
       )}
     </>
   );
+}
+
+// Trappen (29.9.2026): Premium har alt fra Udvidet, som har alt fra Basis. Bestil-fanen
+// findes derfor baade paa Udvidet og Premium.
+function kanBestille(mig) {
+  return mig?.option === "udvidet" || mig?.option === "premium";
 }
 
 // ── Bestil ───────────────────────────────────────────────────────────────────
@@ -1054,7 +1060,7 @@ export default function Portal({ slug }) {
   const faner = [
     ["kalender", "Kalender"],
     ["opgaver", "Opgaver"],
-    ...(mig.option === "udvidet" ? [["bestil", "Bestil"]] : []),
+    ...(kanBestille(mig) ? [["bestil", "Bestil"]] : []),
     ["fakturaer", "Fakturaer"],
     ["brugere", "Brugere"],
     ["hjaelp", "Hjælp"],
@@ -1094,7 +1100,7 @@ export default function Portal({ slug }) {
       {/* key paa datoen tvinger en frisk formular, naar man kommer fra en anden dag i
           kalenderen. Uden den ville useState beholde den foerste dato, fordi
           startvaerdien kun laeses én gang. */}
-      {fane === "bestil" && mig.option === "udvidet" && (
+      {fane === "bestil" && kanBestille(mig) && (
         <Bestil key={bestilDato || "tom"} mig={mig} startDato={bestilDato} />
       )}
       {fane === "brugere" && <Brugere mig={mig} />}
