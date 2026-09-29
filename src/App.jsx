@@ -3,7 +3,7 @@ import Portal from "./Portal.jsx";
 import { F } from "./stil.js";
 import { db } from "./db.js";
 import { useEffect } from "react";
-import { useFirma } from "./firma.js";
+import { useFirma, KUNDEUDGAVE } from "./firma.js";
 
 // To helt forskellige sider i samme app:
 //
@@ -36,6 +36,21 @@ export default function App() {
 
   // Tilbudssiden har sin egen ramme indeni og skal ikke pakkes ind igen.
   if (/^\/tilbud\//.test(sti)) return <Tilbud />;
+
+  // Der er ingen aaben tilmelding (Jonn 29.9.2026). Kundeloesningen aktiveres fra
+  // kundekortet hos Jammerbugt Rengoering, og administratoren faar et link på mail.
+  // /opret fanges her, saa den gamle adresse ikke ender som et kortnavn.
+  if (KUNDEUDGAVE && /^\/opret\/?$/.test(sti)) {
+    return (
+      <div style={F.side}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "var(--farve)", marginBottom: 12 }}>Planlægning</div>
+        <div style={{ ...F.kort, fontSize: 14.5, color: "#475569", lineHeight: 1.6 }}>
+          Planlægning og Worklist oprettes af Jammerbugt Rengøring. Har I fået en mail med et
+          link, så brug det. Ellers kontakt Jammerbugt Rengøring.
+        </div>
+      </div>
+    );
+  }
 
   // Kortnavnet er første led i adressen. Små bogstaver, tal og bindestreg — det er
   // også det planlæggeren kan skrive når portalen tændes.
