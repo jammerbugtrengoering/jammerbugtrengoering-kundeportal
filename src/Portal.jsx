@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { db, kaldAaben } from "./db.js";
 import { F, kr, datoKort, tid } from "./stil.js";
-import { FIRMA } from "./firma.js";
+import { FIRMA, harModul } from "./firma.js";
 
 // Kundens egen side: hendes opgaver, hendes fakturaer, hendes kolleger.
 //
@@ -924,12 +924,12 @@ function Hjaelp({ mig }) {
       "Tidsforbruget er den tid der faktisk er registreret på stedet — ikke den planlagte.",
       "Punkterne på tjeklisten bliver sat af mens arbejdet udføres, så en opgave i gang kan have nogle punkter tilbage.",
     ]],
-    ["Fakturaer", [
+    ...(harModul("dinero") ? [["Fakturaer", [
       "Her ligger de fakturaer der er sendt til jer. Tryk på en for at folde linjerne ud eller åbne den som PDF.",
       "Fakturaer der endnu ikke er sendt, vises ikke — de kan stadig nå at blive ændret.",
       "«Afventer betaling» betyder at fakturaen er sendt. «Forfalden» at betalingsfristen er passeret.",
       "Portalen er kun til at se i. Har du en indsigelse til en faktura, så ring til kontoret.",
-    ]],
+    ]]] : []),
     ["Planlægning (Premium)", [
       "Har I Premium, ser portalens administratorer en fane mere: Planlægning. Her planlægger I jeres egne medarbejdere, tjeklister og opgaver.",
       "Tryk «Åbn planlægningen». Den åbner i en ny fane, og du er logget ind med det samme — du skal ikke have en adgangskode.",
@@ -1116,7 +1116,9 @@ export default function Portal({ slug }) {
     ["opgaver", "Opgaver"],
     ...(kanBestille(mig) ? [["bestil", "Bestil"]] : []),
     ...(harPlanlaegning(mig) ? [["planlaegning", "Planlægning"]] : []),
-    ["fakturaer", "Fakturaer"],
+    // Fakturaerne kommer fra Dinero. Kundeudgaven har ingen Dinero (29.9.2026), saa
+    // fanen findes kun, hvor Dinero-modulet er med (hos Jammerbugt Rengoering).
+    ...(harModul("dinero") ? [["fakturaer", "Fakturaer"]] : []),
     ["brugere", "Brugere"],
     ["hjaelp", "Hjælp"],
   ];
@@ -1151,7 +1153,7 @@ export default function Portal({ slug }) {
       {fane === "kalender" && (
         <Kalender mig={mig} onBedOmBesoeg={(d) => { setBestilDato(d); setFane("bestil"); }} />
       )}
-      {fane === "fakturaer" && <Fakturaer />}
+      {fane === "fakturaer" && harModul("dinero") && <Fakturaer />}
       {/* key paa datoen tvinger en frisk formular, naar man kommer fra en anden dag i
           kalenderen. Uden den ville useState beholde den foerste dato, fordi
           startvaerdien kun laeses én gang. */}
