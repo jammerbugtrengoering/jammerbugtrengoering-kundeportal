@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { F, kr, dato } from "./stil.js";
+// Ingen hentning her: tilbudssiden har med vilje ingen Supabase-klient. Den viser
+// firmaets sidst kendte navn fra enheden, ellers standardnavnet.
+import { FIRMA } from "./firma.js";
 
 // Kundens vej ind til sit eget tilbud.
 //
@@ -29,7 +32,7 @@ function Ramme({ children }) {
   return (
     <div style={F.side}>
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 19, fontWeight: 800, color: "#D6247A" }}>Jammerbugt Rengøring</div>
+        <div style={{ fontSize: 19, fontWeight: 800, color: "var(--farve)" }}>{FIRMA.navn}</div>
       </div>
       {children}
       <div style={{ ...F.hint, textAlign: "center", marginTop: 24 }}>

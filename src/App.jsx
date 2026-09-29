@@ -1,6 +1,8 @@
 import Tilbud from "./Tilbud.jsx";
 import Portal from "./Portal.jsx";
 import { F } from "./stil.js";
+import { db } from "./db.js";
+import { useFirma, brugTitel } from "./firma.js";
 
 // To helt forskellige sider i samme app:
 //
@@ -11,10 +13,13 @@ import { F } from "./stil.js";
 // mere at holde styr på end det sparer.
 
 function Ramme({ children, fod }) {
+  // Navnet oeverst er firmaets (Opsaetning -> Firma i planlaegningsappen).
+  const firma = useFirma(db);
+  brugTitel("navn");
   return (
     <div style={F.side}>
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 19, fontWeight: 800, color: "#D6247A" }}>Jammerbugt Rengøring</div>
+        <div style={{ fontSize: 19, fontWeight: 800, color: "var(--farve)" }}>{firma.navn}</div>
       </div>
       {children}
       <div style={{ ...F.hint, textAlign: "center", marginTop: 24 }}>{fod}</div>

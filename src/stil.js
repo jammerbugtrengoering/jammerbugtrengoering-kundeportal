@@ -17,7 +17,7 @@ export const F = {
   },
   maerkat: {
     fontSize: 11, fontWeight: 800, letterSpacing: ".06em", textTransform: "uppercase",
-    color: "#9C1B5D", marginBottom: 8,
+    color: "var(--farve-moerk)", marginBottom: 8,
   },
   raekke: {
     display: "flex", justifyContent: "space-between", gap: 12,
@@ -25,7 +25,7 @@ export const F = {
   },
   knap: {
     width: "100%", padding: "15px 0", borderRadius: 12, border: "none",
-    background: "#D6247A", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
+    background: "var(--farve)", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer",
   },
   knap2: {
     width: "100%", padding: "13px 0", borderRadius: 12, border: "1.5px solid #E2E8F0",
@@ -54,7 +54,7 @@ export const F = {
     background: "transparent", color: "#64748B", fontSize: 13.5, fontWeight: 700,
     cursor: "pointer", minHeight: 44, whiteSpace: "nowrap",
   },
-  faneAktiv: { background: "#fff", color: "#9C1B5D", boxShadow: "0 1px 3px rgba(15,23,42,0.10)" },
+  faneAktiv: { background: "#fff", color: "var(--farve-moerk)", boxShadow: "0 1px 3px rgba(15,23,42,0.10)" },
 };
 
 export const kr = (n) => new Intl.NumberFormat("da-DK", {

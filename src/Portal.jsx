@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { db, kaldAaben } from "./db.js";
 import { F, kr, datoKort, tid } from "./stil.js";
+import { FIRMA } from "./firma.js";
 
 // Kundens egen side: hendes opgaver, hendes fakturaer, hendes kolleger.
 //
@@ -369,10 +370,10 @@ function Kalender({ mig, onBedOmBesoeg }) {
                                   borderBottom: "1px solid #F1F5F9" }}>
             <div style={{ width: 68, flexShrink: 0 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700,
-                            color: erIDag ? "#D6247A" : dagens.length ? "#111111" : "#94A3B8" }}>
+                            color: erIDag ? "var(--farve)" : dagens.length ? "#111111" : "#94A3B8" }}>
                 {UGEDAGE[(d.getDay() + 6) % 7]} {d.getDate()}.
               </div>
-              {erIDag && <div style={{ fontSize: 11, fontWeight: 700, color: "#D6247A" }}>i dag</div>}
+              {erIDag && <div style={{ fontSize: 11, fontWeight: 700, color: "var(--farve)" }}>i dag</div>}
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -413,7 +414,7 @@ function Kalender({ mig, onBedOmBesoeg }) {
                       )}
                       <span style={{ fontSize: 14, color: "#111111" }}>{o.titel}</span>
                       {maerke(st.tekst, st.farve, st.bag)}
-                      {bestilt && maerke("Jeres bestilling", "#9C1B5D", "#FCE4EF")}
+                      {bestilt && maerke("Jeres bestilling", "var(--farve-moerk)", "var(--farve-lys)")}
                     </div>
                     <div style={{ fontSize: 12.5, color: "#94A3B8", marginTop: 2 }}>
                       {udfoert && o.registreret_minutter > 0 ? tid(o.registreret_minutter) : null}
@@ -906,7 +907,7 @@ function Hjaelp({ mig }) {
     // Skrevet ud fra de felter der faktisk findes i databasen, ikke ud fra en
     // skabelon. Aendrer vi hvad portalen gemmer, skal teksten her rettes med.
     ["Sådan behandler vi jeres oplysninger", [
-      "Jammerbugt Rengøring er ansvarlig for de oplysninger, vi gemmer om jer. Her står hvad det er.",
+      `${FIRMA.juridisk_navn || FIRMA.navn} er ansvarlig for de oplysninger, vi gemmer om jer. Her står hvad det er.`,
       "Om jer: firmanavn eller navn, adresse, kontaktperson, telefonnummer og e-mail. Kontaktoplysningerne hentes fra jeres kundekort i vores regnskabsprogram, Dinero, og holdes opdateret derfra hver nat. Til portalen desuden hvem der har adgang, og hvem der er administrator.",
       "Om arbejdet: hvad der er aftalt, hvornår det er udført, hvor lang tid det tog, og de noter og billeder medarbejderen lægger på opgaven.",
       "Adgangsforhold til jeres adresse, hvis vi skal kunne komme ind — se afsnittet nedenfor.",
