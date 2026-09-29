@@ -16,7 +16,8 @@ import { createClient } from "@supabase/supabase-js";
 // Reserven bliver stående, så portalen også virker for en, der lige har klonet repoet
 // og ikke har sat noget op. Nøglen er offentlig; der er intet at beskytte ved at
 // fjerne den herfra.
-const URL = "https://gteowfoahsfpunzgdxum.supabase.co";
+// Kundeudgaven saetter VITE_SUPABASE_URL til kundedatabasen i Netlify.
+const URL = import.meta.env.VITE_SUPABASE_URL || "https://gteowfoahsfpunzgdxum.supabase.co";
 const NOEGLE = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   || "sb_publishable_GF49Zf5gHAm_nlNff-PuTA_4Cf8L-1e";
 

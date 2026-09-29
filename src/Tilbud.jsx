@@ -10,7 +10,7 @@ import { FIRMA } from "./firma.js";
 // linket. Derfor er der heller ingen Supabase-klient og ingen anon-noegle i det her
 // bundt — alt gaar gennem edge-funktionen tilbud-offentlig, som er den eneste der
 // kan naa tabellen. En kunde kan altsaa ikke sidde og afproeve noegler mod databasen.
-const FUNKTION = "https://gteowfoahsfpunzgdxum.supabase.co/functions/v1/tilbud-offentlig";
+const FUNKTION = (import.meta.env.VITE_SUPABASE_URL || "https://gteowfoahsfpunzgdxum.supabase.co") + "/functions/v1/tilbud-offentlig";
 
 const KONTRAKT = {
   privat: "Privat", erhverv: "Erhverv", aeldrelov: "Ældreloven", nexus: "Kommunal (Nexus)",
