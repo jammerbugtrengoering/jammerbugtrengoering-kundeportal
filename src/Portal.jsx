@@ -662,6 +662,54 @@ function kanBestille(mig) {
   return mig?.option === "udvidet" || mig?.option === "premium";
 }
 
+// Ét login (29.9.2026): paa Premium aabner portalens administrator kundens egen
+// planlaegning herfra — uden et login mere. Rollen styrer: kun admin ser fanen.
+function harPlanlaegning(mig) {
+  return mig?.option === "premium" && mig?.min_rolle === "admin";
+}
+
+const PLAN_FEJL = {
+  ikke_planlaegger: "Din mail er ikke planlægger i jeres planlægning. Kontakt Jammerbugt Rengøring.",
+  ikke_aaben: "Planlægningen er lukket. Kontakt Jammerbugt Rengøring.",
+  ikke_premium: "Planlægning er ikke en del af jeres aftale.",
+  kun_administrator: "Kun portalens administratorer kan åbne planlægningen.",
+};
+
+function Planlaegning() {
+  const [arbejder, setArbejder] = useState(false);
+  const [fejl, setFejl] = useState("");
+  async function aabn() {
+    setFejl(""); setArbejder(true);
+    // Vinduet aabnes FOER kaldet: aabner man det efter et await, stopper browseren det
+    // som en pop-up.
+    const vindue = window.open("", "_blank");
+    const { data, error } = await db.functions.invoke("aabn-planlaegning", { body: {} });
+    setArbejder(false);
+    let kode = data?.error;
+    if (!kode && error) { try { kode = (await error.context?.json())?.error; } catch { /* ingen tekst */ } }
+    if (!data?.url) {
+      if (vindue) vindue.close();
+      setFejl(PLAN_FEJL[kode] || "Planlægningen kunne ikke åbnes. Prøv igen om lidt.");
+      return;
+    }
+    if (vindue) vindue.location.href = data.url; else window.location.href = data.url;
+  }
+  return (
+    <div style={F.kort}>
+      <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>Jeres planlægning</div>
+      <div style={{ fontSize: 14.5, color: "#475569", lineHeight: 1.6, marginBottom: 14 }}>
+        Her planlægger I jeres egne medarbejdere, tjeklister og opgaver. Medarbejderne ser deres
+        opgaver i Worklist på telefonen. Du bliver logget ind med det samme — du skal ikke have
+        en adgangskode.
+      </div>
+      <button style={{ ...F.knap, opacity: arbejder ? 0.6 : 1 }} disabled={arbejder} onClick={aabn}>
+        {arbejder ? "Åbner …" : "Åbn planlægningen"}
+      </button>
+      {fejl && <div style={{ color: "#B91C1C", fontSize: 14, marginTop: 10 }}>{fejl}</div>}
+    </div>
+  );
+}
+
 // ── Bestil ───────────────────────────────────────────────────────────────────
 //
 // Kun paa Udvidet. Kunden vaelger en ydelse fra listen eller skriver sit eget
@@ -882,8 +930,14 @@ function Hjaelp({ mig }) {
       "«Afventer betaling» betyder at fakturaen er sendt. «Forfalden» at betalingsfristen er passeret.",
       "Portalen er kun til at se i. Har du en indsigelse til en faktura, så ring til kontoret.",
     ]],
+    ["Planlægning (Premium)", [
+      "Har I Premium, ser portalens administratorer en fane mere: Planlægning. Her planlægger I jeres egne medarbejdere, tjeklister og opgaver.",
+      "Tryk «Åbn planlægningen». Den åbner i en ny fane, og du er logget ind med det samme — du skal ikke have en adgangskode.",
+      "Almindelige portalbrugere ser ikke fanen. Det er jeres administrator, der styrer, hvem der er administrator.",
+      "Jeres medarbejdere logger ind i Worklist på telefonen med deres eget login. De skal ikke bruge portalen.",
+    ]],
     ["Bestil ekstra arbejde", [
-      "Fanen Bestil findes kun, hvis I har den udvidede portal. Kan I ikke se den, så ring til kontoret.",
+      "Fanen Bestil findes, hvis I har den udvidede portal eller Premium. Kan I ikke se den, så ring til kontoret.",
       "Vælg en ydelse på listen, eller skriv med jeres egne ord hvad I har brug for. I kan gøre begge dele.",
       "Skriv gerne en ønsket dato. Den er et ønske, ikke en aftale — vi vender tilbage, før noget sættes i gang.",
       "Der står ingen pris, og der trækkes ingen betaling. Siger vi ja, kommer arbejdet på den almindelige faktura efter den tid der bliver brugt.",
@@ -1061,6 +1115,7 @@ export default function Portal({ slug }) {
     ["kalender", "Kalender"],
     ["opgaver", "Opgaver"],
     ...(kanBestille(mig) ? [["bestil", "Bestil"]] : []),
+    ...(harPlanlaegning(mig) ? [["planlaegning", "Planlægning"]] : []),
     ["fakturaer", "Fakturaer"],
     ["brugere", "Brugere"],
     ["hjaelp", "Hjælp"],
@@ -1103,6 +1158,7 @@ export default function Portal({ slug }) {
       {fane === "bestil" && kanBestille(mig) && (
         <Bestil key={bestilDato || "tom"} mig={mig} startDato={bestilDato} />
       )}
+      {fane === "planlaegning" && harPlanlaegning(mig) && <Planlaegning />}
       {fane === "brugere" && <Brugere mig={mig} />}
       {fane === "hjaelp" && <Hjaelp mig={mig} />}
     </>
