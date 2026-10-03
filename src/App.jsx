@@ -1,5 +1,6 @@
 import Tilbud from "./Tilbud.jsx";
 import Portal from "./Portal.jsx";
+import Bestil from "./Bestil.jsx";
 import { F } from "./stil.js";
 import { db } from "./db.js";
 import { useEffect } from "react";
@@ -36,6 +37,10 @@ export default function App() {
 
   // Tilbudssiden har sin egen ramme indeni og skal ikke pakkes ind igen.
   if (/^\/tilbud\//.test(sti)) return <Tilbud />;
+
+  // «Bliv ringet op» fra QR-koden i pjecen (3.10.2026). Åben for alle, kun hos
+  // Jammerbugt Rengøring — kundeudgaven har ingen pjece og ingen henvendelser.
+  if (!KUNDEUDGAVE && /^\/bestil\/?$/.test(sti)) return <Bestil />;
 
   // Der er ingen aaben tilmelding (Jonn 29.9.2026). Kundeloesningen aktiveres fra
   // kundekortet hos Jammerbugt Rengoering, og administratoren faar et link på mail.

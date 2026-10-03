@@ -973,6 +973,7 @@ function Hjaelp({ mig }) {
       "Adgangsforhold til jeres adresse, hvis vi skal kunne komme ind — se afsnittet nedenfor.",
       "Om økonomien: fakturaer, priser og aftalte satser.",
       "Bestiller I ekstra arbejde, gemmer vi bestillingen med jeres ønskede dato og bemærkninger.",
+      "Beder du om at blive ringet op på siden «Bliv ringet op» (QR-koden i vores pjece), gemmer vi navn, telefonnummer, hvornår vi må ringe og det, du selv skriver — fx adresse, om du får hjælp fra kommunen, og hvad du er interesseret i. Det bruges kun til at ringe dig op. Bliver du ikke kunde, slettes det senest et år efter.",
     ]],
     ["Når I accepterer et tilbud", [
       "Ud over jeres navn og e-mail gemmer vi tidspunktet, IP-adressen og hvilken browser der blev brugt, sammen med et fingeraftryk af selve dokumentet.",
