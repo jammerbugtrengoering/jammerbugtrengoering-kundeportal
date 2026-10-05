@@ -979,6 +979,7 @@ function Hjaelp({ mig }) {
       "Ud over jeres navn og e-mail gemmer vi tidspunktet, IP-adressen og hvilken browser der blev brugt, sammen med et fingeraftryk af selve dokumentet.",
       "Det er alene, for at begge parter kan dokumentere hvad der blev aftalt, og hvornår. Fingeraftrykket betyder, at indholdet ikke kan ændres bagefter — hverken af jer eller af os.",
       "Vi beder ikke om jeres samtykke til det, og det er med vilje. Grundlaget er dokumentation for en indgået aftale. Et samtykke kunne trækkes tilbage, og så stod begge parter uden bevis for den aftale, I netop havde accepteret.",
+      "Underskriver du tilbuddet med fingeren hos os, eller godkender du det over telefonen eller på anden måde, gemmer vi i stedet dit navn, billedet af din underskrift (hvis du har skrevet under), hvem hos os der var til stede eller noterede det, hvordan du sagde ja, og tidspunktet. Du får det underskrevne tilbud som PDF på mail, hvis vi har din adresse.",
       "Oplysningerne bruges ikke til noget andet, og de videregives ikke.",
     ]],
     ["Nøglebokskoder og adgang til jeres adresse", [
